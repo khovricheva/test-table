@@ -1,7 +1,7 @@
 import React from 'react';
 import './Table.css';
 
-function Table({ data, onSort, sortDir, sortField }) {
+function Table({ data, onSort, sortDir, sortField, onRowSelect }) {
   return (
     <div>
       <table className='table'>
@@ -28,7 +28,10 @@ function Table({ data, onSort, sortDir, sortField }) {
         </thead>
         <tbody>
           {data.map((item) => (
-            <tr key={item.id + item.phone}>
+            <tr
+              key={item.id + item.phone}
+              onClick={onRowSelect.bind(null, item)}
+            >
               <td>{item.id}</td>
               <td>{item.firstName}</td>
               <td>{item.lastName}</td>

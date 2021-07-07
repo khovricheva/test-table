@@ -1,53 +1,66 @@
-import './App.css';
-import Loader from './Loader/Loader';
-import Table from './Table/Table';
 import { useState, useEffect } from 'react';
 import _ from 'lodash';
+import Loader from './Loader/Loader';
+import Table from './Table/Table';
+import DetailRowView from './DetailRowView/DetailRowView';
+import ModeSelector from './ModeSelector/ModeSelector';
+import './App.css';
 
 function App() {
+  const [isModeSelected, setIsModeSelected] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [data, setData] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [sortDir, setSortDir] = useState('asc');
+  const [sortDir, setSortDir] = useState('');
   const [sortField, setSortField] = useState('');
-  // const [state, setstate] = useState(initialState)
+  const [rowData, setRowData] = useState(null);
+
+  const fetchData = async (url) => {
+    const response = await fetch(url);
+    const data = await response.json();
+    setIsLoading(false);
+    setData(data);
+  };
+
   const onSort = (sortField) => {
     const copiedData = data.concat();
     const sortType = sortDir === 'asc' ? 'desc' : 'asc';
-
     const orderedData = _.orderBy(copiedData, sortField, sortType);
     setData(orderedData);
     setSortDir(sortType);
     setSortField(sortField);
   };
 
-  const fetchData = async () => {
-    const response = await fetch(
-      ` http://www.filltext.com/?rows=32&id={number|1000}&firstName={firstName}&lastName={lastName}&email={email}&phone={phone|(xxx)xxx-xx-xx}&address={addressObject}&description={lorem|32}`
-    );
-    const data = await response.json();
-    setIsLoading(false);
-    setData(data);
-    console.log(data);
+  const onRowSelect = (item) => setRowData(item);
+
+  const modeSelectHandler = (url) => {
+    setIsModeSelected(true);
+    setIsLoading(true);
+    fetchData(url);
   };
 
-  useEffect(() => {
-    fetchData();
-    return () => {};
-  }, []);
-
   return (
-    <div className='container'>
-      {isLoading ? (
-        <Loader />
+    <>
+      {isModeSelected ? (
+        <div className='container'>
+          {isLoading ? (
+            <Loader />
+          ) : (
+            <Table
+              data={data}
+              onSort={onSort}
+              sortDir={sortDir}
+              sortField={sortField}
+              onRowSelect={onRowSelect}
+            />
+          )}
+          {rowData ? <DetailRowView person={rowData} /> : null}
+        </div>
       ) : (
-        <Table
-          data={data}
-          onSort={onSort}
-          sortDir={sortDir}
-          sortField={sortField}
-        />
+        <div className='container'>
+          <ModeSelector onSelect={modeSelectHandler} />
+        </div>
       )}
-    </div>
+    </>
   );
 }
 
