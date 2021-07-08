@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import ReactPaginate from 'react-paginate';
 import _ from 'lodash';
 import Loader from './Loader/Loader';
 import Table from './Table/Table';
@@ -13,6 +14,9 @@ function App() {
   const [sortDir, setSortDir] = useState('');
   const [sortField, setSortField] = useState('');
   const [rowData, setRowData] = useState(null);
+  const [currentPage, setCurrentPage] = useState(0);
+  const [displayData, setDisplayData] = useState([]);
+  const pageSize = 50;
 
   const fetchData = async (url) => {
     const response = await fetch(url);
@@ -38,6 +42,16 @@ function App() {
     fetchData(url);
   };
 
+  const pageChangeHandler = ({ selected }) => {
+    setCurrentPage(selected);
+  };
+
+  useEffect(() => {
+    if (data.length) {
+      setDisplayData(_.chunk(data, pageSize)[currentPage]);
+    }
+  }, [data, currentPage]);
+
   return (
     <>
       {isModeSelected ? (
@@ -45,13 +59,36 @@ function App() {
           {isLoading ? (
             <Loader />
           ) : (
-            <Table
-              data={data}
-              onSort={onSort}
-              sortDir={sortDir}
-              sortField={sortField}
-              onRowSelect={onRowSelect}
-            />
+            <>
+              <Table
+                data={displayData}
+                onSort={onSort}
+                sortDir={sortDir}
+                sortField={sortField}
+                onRowSelect={onRowSelect}
+              />
+              {data.length > pageSize ? (
+                <ReactPaginate
+                  previousLabel={'<'}
+                  nextLabel={'>'}
+                  breakLabel={'...'}
+                  breakClassName={'break-me'}
+                  breakLinkClassName={'page-link'}
+                  pageCount={20}
+                  marginPagesDisplayed={2}
+                  pageRangeDisplayed={5}
+                  onPageChange={pageChangeHandler}
+                  containerClassName={'pagination'}
+                  activeClassName={'active'}
+                  pageClassName={'page-item'}
+                  pageLinkClassName={'page-link'}
+                  previousClassName={'page-item'}
+                  nextClassName={'page-item'}
+                  previousLinkClassName={'page-link'}
+                  nextLinkClassName={'page-link'}
+                />
+              ) : null}
+            </>
           )}
           {rowData ? <DetailRowView person={rowData} /> : null}
         </div>
